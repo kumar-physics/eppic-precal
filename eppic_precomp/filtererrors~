@@ -1,0 +1,4 @@
+#!/bin/bash
+
+fgrep -v "non-standard" $1 | grep -v "Clashes" | grep -v "non-protein" | grep -v "no protein" | grep -v "space group" | grep -v "_atom_site" | grep -v "no observed residues" | grep -v "Inconsistent PDB entry" | grep -v "Can't continue" | grep -v "Mix of protein and nucleotide sequences" 
+
