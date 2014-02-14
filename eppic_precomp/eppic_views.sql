@@ -11,6 +11,17 @@ RETURN res;
 END $$
 DELIMITER ;
 
+DROP FUNCTION IF EXISTS get_score;
+DELIMITER $$
+CREATE FUNCTION get_score(interfaceid INT,met VARCHAR(255)) RETURNS DOUBLE
+BEGIN
+DECLARE res DOUBLE;
+SET res=(SELECT unweightedFinalScores FROM InterfaceScore WHERE interfaceItem_uid=interfaceid and method like met);
+RETURN res;
+END $$
+DELIMITER ;
+
+
 DROP FUNCTION IF EXISTS get_homologs;
 DELIMITER $$
 CREATE FUNCTION get_homologs(pdbuid INT,chain VARCHAR(255)) RETURNS INT(12)
@@ -38,25 +49,27 @@ i.isInfinite,
 i.size1,
 i.size2,
 get_result(i.uid,"Geometry") geometry,
-get_result(i.uid,"Entropy") corerim,
-get_result(i.uid,"Z-scores") coresurface,
+get_score(i.uid,"Entropy") crScore,
+get_result(i.uid,"Entropy") cr,
+get_score(i.uid,"Z-scores") csScore,
+get_result(i.uid,"Z-scores") cs,
 i.finalCallName final
 from PdbScore as p inner join Interface as i
 on i.pdbScoreItem_uid=p.uid inner join Job as j on length(j.jobId)=4 and j.uid=p.jobItem_uid;
 
 drop view if exists dc_bio;
 create view dc_bio as 
-select * from webview as w inner join benchmark.dc_bio as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid;
+select w.* from webview as w inner join benchmark.dc_bio as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid;
 drop view if exists dc_xtal;
 create view dc_xtal as 
-select * from webview as w inner join benchmark.dc_xtal as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid; 
+select w.* from webview as w inner join benchmark.dc_xtal as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid; 
 
 drop view if exists po_bio;
 create view po_bio as 
-select * from webview as w inner join benchmark.ponstingl_bio as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid;
+select w.* from webview as w inner join benchmark.ponstingl_bio as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid;
 drop view if exists po_xtal;
 create view po_xtal as 
-select * from webview as w inner join benchmark.ponstingl_xtal as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid; 
+select w.* from webview as w inner join benchmark.ponstingl_xtal as dc on w.pdbName=dc.pdb and w.id=dc.interfaceid; 
 
 drop view if exists many_bio;
 create view many_bio as
