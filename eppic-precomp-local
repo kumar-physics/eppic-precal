@@ -19,18 +19,34 @@ USER=baskaran_k
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started downloading script "
 ./DownloadFiles -o $DOWNLOAD 1>>eppic_precomp.out 2>>eppic_precomp.err
+if [[ $? -ne 0 ]]; then
+	echo "DownloadFiles failed"
+	exit 1
+fi
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished downloading "
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started uploading data into MySql database "
 ./UploadToDatabase -d $DOWNLOAD -j $EPPIC_JAR -n $DATABASE_NAME 1>>eppic_precomp.out 2>>eppic_precomp.err
+if [[ $? -ne 0 ]]; then
+	echo "UploadToDatabase failed"
+	exit 1
+fi
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished uploading data into MySql database "
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started updating blast db "
 ./UpdateBlastDB -d $BLASTDB 1>>eppic_precomp.out 2>>eppic_precomp.err
+if [[ $? -ne 0 ]]; then
+	echo "UpdateBlastDB failed"
+	exit 1
+fi
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished updating blast db"
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started to create unique fasta "
 ./CreateUniqueFasta -s $DOWNLOAD/pdb_chain_uniprot.lst -n $DATABASE_NAME -o $UNIQUE_FASTA -j $EPPIC_JAR 1>>eppic_precomp.out 2>>eppic_precomp.err
+if [[ $? -ne 0 ]]; then
+	echo "CreateUniqeFasta failed"
+	exit 1
+fi
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished creating unique fasta "
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Preparing files for Merlin run"

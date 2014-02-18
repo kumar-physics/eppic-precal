@@ -4,7 +4,7 @@
 #  Author : Kumaran Baskaran
 #  Date   : 05/07/2013
 #***************************************************************
-
+set -e
 help="\t\tUsage : $0 \n
 	\t\t [-d <dir-path> : Directory contains downloaded files\n
 	\t\t -j <file-path> : eppic jar file path\n

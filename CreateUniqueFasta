@@ -4,7 +4,7 @@
 #  Author : Kumaran Baskaran
 #  Date   : 05/07/2013
 #***************************************************************
-
+set -e
 help="\t\tUsage : $0 \n
 	\t\t [-s <path> : Sifts Connection file path \n
 	\t\t -n <name> : database name (usually uniprot relese name)\n

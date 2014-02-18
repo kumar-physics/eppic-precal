@@ -4,7 +4,7 @@
 #  Author : Kumaran Baskaran
 #  Date   : 05/07/2013
 #***************************************************************
-
+set -e
 help="\t\tUsage : $0 \n
 	\t\t [-d <dir-path> : base local dir should contain subdirs named uniprot_yyyy_mm]\n
 \t\tExample : ./Download files -d ~/Downloads "
