@@ -31,7 +31,8 @@ done
 #===================== Download links =====================================
 
 
-UNIPROT_URL="ftp://ftp.expasy.org/databases/uniprot/current_release/uniref/uniref100/uniref100.xml.gz"
+#UNIPROT_URL="ftp://ftp.expasy.org/databases/uniprot/current_release/uniref/uniref100/uniref100.xml.gz"
+UNIPROT_URL="ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniref/uniref100/uniref100.xml.gz"
 TAXONOMY_URL="http://www.uniprot.org/taxonomy/?query=*&compress=yes&format=tab"
 #BLASTDB_URL="ftp://ftp.uniprot.org/pub" # US main ftp
 BLASTDB_URL="ftp://ftp.ebi.ac.uk/pub" # UK mirror
