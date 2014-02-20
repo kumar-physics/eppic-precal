@@ -14,7 +14,7 @@ EPPIC_JAR=$CURRENT/eppic.jar
 DATABASE_NAME=uniprot_20xx_xx
 BLASTDB=$CURRENT/blastdb
 UNIQUE_FASTA=$CURRENT/unique_fasta
-USER=baskaran_k
+USER=username
 #===============================================================
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started downloading script "
