@@ -4,22 +4,22 @@ from math import sqrt
 
 
 def get_TP(database,dataset,method,cutoff):
-	cmd="mysql -h localhost -u root -pmalouda9 -B -N -e 'select count(*) from %s.%s_bio where %sScore<=%f and %s not like \"nopred\"'"%(database,dataset,method,cutoff,method)
+	cmd="mysql -h localhost -u root -ppasswd -B -N -e 'select count(*) from %s.%s_bio where %sScore<=%f and %s not like \"nopred\"'"%(database,dataset,method,cutoff,method)
 	return commands.getoutput(cmd)
 def get_TN(database,dataset,method,cutoff):
-        cmd="mysql -h localhost -u root -pmalouda9 -B -N -e 'select count(*) from %s.%s_xtal where %sScore>%f and %s not like \"nopred\"'"%(database,dataset,method,cutoff,method)
+        cmd="mysql -h localhost -u root -ppasswd -B -N -e 'select count(*) from %s.%s_xtal where %sScore>%f and %s not like \"nopred\"'"%(database,dataset,method,cutoff,method)
         return commands.getoutput(cmd)
 def get_P(database,dataset,method,includeNopred):
 	if includeNopred==1:
-		cmd="mysql -h localhost -u root -pmalouda9 -B -N -e 'select count(*) from %s.%s_bio;'"%(database,dataset)
+		cmd="mysql -h localhost -u root -ppasswd -B -N -e 'select count(*) from %s.%s_bio;'"%(database,dataset)
 	else:
-		cmd="mysql -h localhost -u root -pmalouda9 -B -N -e 'select count(*) from %s.%s_bio where %s not like \"nopred\";'"%(database,dataset,method)
+		cmd="mysql -h localhost -u root -ppasswd -B -N -e 'select count(*) from %s.%s_bio where %s not like \"nopred\";'"%(database,dataset,method)
 	return commands.getoutput(cmd)
 def get_N(database,dataset,method,includeNopred):
         if includeNopred==1:
-                cmd="mysql -h localhost -u root -pmalouda9 -B -N -e 'select count(*) from %s.%s_xtal;'"%(database,dataset)
+                cmd="mysql -h localhost -u root -ppasswd -B -N -e 'select count(*) from %s.%s_xtal;'"%(database,dataset)
         else:
-                cmd="mysql -h localhost -u root -pmalouda9 -B -N -e 'select count(*) from %s.%s_xtal where %s not like \"nopred\";'"%(database,dataset,method)
+                cmd="mysql -h localhost -u root -ppasswd -B -N -e 'select count(*) from %s.%s_xtal where %s not like \"nopred\";'"%(database,dataset,method)
         return commands.getoutput(cmd)
 
 
