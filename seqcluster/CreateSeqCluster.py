@@ -3,9 +3,9 @@ Script to create SeqCluster Table
 Author : Kumaran Baskaran
 Date   : 08.04.2014
 
+Seq Clusters are calculated using cd-hid
 
-
-Last tep transfer the file to /tmp dir of the mysql hosting server
+Last step transfer the file to /tmp dir of the mysql hosting server
 then use this command in mysql
 
 load data infile '/tmp/SeqCluster.tab' into table SeqCluster(pdbCode,repChain,c100,c95,c90,c80,c70,c60,c50,chainCluster_uid);
@@ -80,7 +80,7 @@ def get_seq_data(dbname):
 	os.system(cmd)
 
 def create_table(dbname):
-	cmd="mysql %s -B -N -e \"create table SeqClusterTest(uid int(11) not null auto_increment,pdbCode varchar(4),repChain varchar(4),c100 int(11),c95 int(11),c90 int(11),c80 int(11),c70 int(11),c60 int(11),c50 int(11),chainCluster_uid int(11),primary key (uid));\""%(dbname)
+	cmd="mysql %s -B -N -e \"create table SeqCluster(uid int(11) not null auto_increment,pdbCode varchar(4),repChain varchar(4),c100 int(11),c95 int(11),c90 int(11),c80 int(11),c70 int(11),c60 int(11),c50 int(11),chainCluster_uid int(11),primary key (uid));\""%(dbname)
 	os.system(cmd)
 
 if __name__=="__main__":
