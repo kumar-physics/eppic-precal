@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
 '''
-Pymol plugin to load EPPIC interface files
+PyMOL plugin to load EPPIC interface files
 
 DESCRIPTION
 
 EPPIC:
-	EPPIC stands fror Evolutionary Protein-Protein Interface Classifier. EPPIC mainly aims at classifying the interfaces present in protein crystal lattices in order to determine whether they are biologically relevant or not. EPPIC can be accessed from www.eppic-web.org
+	EPPIC (www.eppic-web.org) stands for Evolutionary Protein-Protein Interface Classifier (Duarte et al, BMC Bionformatics, 2012). 
+	EPPIC mainly aims at classifying the interfaces present in protein crystal lattices in order to determine whether they are 
+	biologically relevant or not.  
+	For more information or queries please contact us at eppic@systemsx.ch. Our team web page is: http://www.psi.ch/lbr/capitani_-guido
 
 Installation:
 copy this file to /modules/pmg_tk/startup/ in the pymol installation path
@@ -12,9 +16,9 @@ restart pymol, now you will have additional entry called "Eppic Interface Loader
 
 
 Usage:
-Entering 4 digit pdb code will load all interfaces for a given pdbid
+Entering a pdb code will load all interfaces for a given pdbid
 Example: 2gs2
-Entering pdbid-interfceid will load only specified interface.
+Entering pdbid-interfaceid will load only a specified interface (as numbered by EPPIC, which sorts interfaces by their area) 
 Example: 2gs2-2
 
 
@@ -22,21 +26,20 @@ Command line:
 load_eppic is the command line tool for this plugin.
 
 
-
 Usage:
 	Method 1:
 	load_eppic <pdbid> 
 	This command will load all the interface files for a given pdbid
-	example:
+	Example:
 	load_eppic 2gs2
 
 	Method 2:
 	load_eppic <pdbid-interfaceid>
-	This command will load only specified interface
-	example:
+	This command will load only a specified interface
+	Example:
 	load_eppic 2gs2-2
 
-	The interface ids are listed in EPPIC server
+	Interface ids are those listed in the EPPIC server output
 
 
 Author : Kumaran Baskaran
@@ -169,7 +172,7 @@ def load_eppic(pdbCode):
 					if ifaceid==1:
 						print "No PBD (or) Interface Found"
 					else:
-						print "%d Interface Loaded"%(ifaceid-1)
+						print "%d Interfaces Loaded"%(ifaceid-1)
 					break
 def fetch_eppic(pdbid,ifaceid,filename):	
 		fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
