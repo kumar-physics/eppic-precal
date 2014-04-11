@@ -191,7 +191,10 @@ def load_eppic(pdbid,ifaceid,filename):
 		request=urllib2.Request(fetchurl)
 		request.add_header('Accept-encoding', 'gzip')
 		opener=urllib2.build_opener()
-		f=opener.open(request)
+		try:
+			f=opener.open(request)
+		except urllib2.HTTPError:
+			return 0
 		compresseddata = f.read()
 		if len(compresseddata)>0:
 			compressedstream = StringIO.StringIO(compresseddata)
