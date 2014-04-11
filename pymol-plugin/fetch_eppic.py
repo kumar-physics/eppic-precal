@@ -154,7 +154,7 @@ def load_eppic(pdbCode):
 			if check_fetch:
 				cmd.load(filename,pdbCode)
 			else:
-				print "No Interface Found"			
+				print "No PDB (or) Interface Found"			
 
 		else:
 			ifaceid=1
@@ -167,7 +167,7 @@ def load_eppic(pdbCode):
 					ifaceid+=1
 				else:
 					if ifaceid==1:
-						print "No Interface Found"
+						print "No PBD (or) Interface Found"
 					else:
 						print "%d Interface Loaded"%(ifaceid-1)
 					break
