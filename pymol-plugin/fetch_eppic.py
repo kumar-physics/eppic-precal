@@ -72,8 +72,8 @@ class FetchEPPIC:
 	def __init__(self, app):
 		fetchpath=cmd.get('fetch_path')
 		pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
-                                                      'Please enter a 4-digit pdb code:',
-                                                      parent=app.root)
+				'Please enter a 4-digit pdb code:',
+				parent=app.root)
 		if pdbCode:
 			if len(pdbCode)>4:
 				pdbid=pdbCode.split("-")[0]
@@ -84,7 +84,7 @@ class FetchEPPIC:
 					cmd.load(filename,pdbCode)
 				else:
 					tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
-        	                               'No Interface found\n(or)\nPDB not found')
+							'No Interface found\n(or)\nPDB not found')
 			else:
 				ifaceid=1
 				pdbid=pdbCode
@@ -97,28 +97,14 @@ class FetchEPPIC:
 					else:
 						if ifaceid==1:
 							tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
-        	                              			 'No Interface found\n(or)\nPDB not found')
+									'No Interface found\n(or)\nPDB not found')
 						else:
 							tkMessageBox.showinfo('Loading Completed',
-        	                               			'%d interfaces loaded'%(ifaceid-1))
+									'%d interfaces loaded'%(ifaceid-1))
 						break
 
-	def fetch_eppic(self,pdbid,ifaceid,filename):	
-		fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
-		request=urllib2.Request(fetchurl)
-		request.add_header('Accept-encoding', 'gzip')
-		opener=urllib2.build_opener()
-		f=opener.open(request)
-		compresseddata = f.read()
-		if len(compresseddata)>0:
-			compressedstream = StringIO.StringIO(compresseddata)
-			gzipper = gzip.GzipFile(fileobj=compressedstream)
-			data = gzipper.read()
-			open(filename,'w').write(data)
-			is_done=1
-		else:
-			is_done=0
-		return is_done
+	def fetch_eppic(self,pdbid,ifaceid,filename):
+		return fetch_eppic(pdbid,ifaceid,filename)
 
 def fetch_eppic(pdbCode):
 	'''
@@ -129,7 +115,7 @@ def fetch_eppic(pdbCode):
 	------
 	EPPIC (www.eppic-web.org) stands for Evolutionary Protein-Protein Interface 
 	Classifier (Duarte et al, BMC Bionformatics, 2012). 
-	
+
 	EPPIC mainly aims at classifying the interfaces present in protein crystal 
 	lattices in order to determine whether they are biologically relevant or not. 
  
@@ -169,7 +155,7 @@ def fetch_eppic(pdbCode):
 			if check_fetch:
 				cmd.load(filename,pdbCode)
 			else:
-				print "No PDB (or) Interface Found"			
+				print "No PDB (or) Interface Found"
 
 		else:
 			ifaceid=1
