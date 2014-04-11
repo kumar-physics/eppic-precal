@@ -120,7 +120,7 @@ class FetchEPPIC:
 			is_done=0
 		return is_done
 
-def load_eppic(pdbCode):
+def fetch_eppic(pdbCode):
 	'''
 	===========================================================================
 	DESCRIPTION
@@ -142,16 +142,16 @@ def load_eppic(pdbCode):
 	Usage:
 	------
 	Method 1:
-	load_eppic <pdbid> 
+	fetch_eppic <pdbid> 
 	This command will load all the interface files for a given pdbid
 	example:
-	load_eppic 2gs2
+	fetch_eppic 2gs2
 
 	Method 2:
-	load_eppic <pdbid-interfaceid>
+	fetch_eppic <pdbid-interfaceid>
 	This command will load only specified interface
 	example:
-	load_eppic 2gs2-2
+	fetch_eppic 2gs2-2
 
 	The interface ids are listed in EPPIC server
 
@@ -165,7 +165,7 @@ def load_eppic(pdbCode):
 			pdbid=pdbCode.split("-")[0]
 			ifaceid=atoi(pdbCode.split("-")[1])
 			filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-			check_fetch=fetch_eppic(pdbid,ifaceid,filename)
+			check_fetch=load_eppic(pdbid,ifaceid,filename)
 			if check_fetch:
 				cmd.load(filename,pdbCode)
 			else:
@@ -176,7 +176,7 @@ def load_eppic(pdbCode):
 			pdbid=pdbCode
 			while(1):
 				filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-				check_fetch=fetch_eppic(pdbid,ifaceid,filename)
+				check_fetch=load_eppic(pdbid,ifaceid,filename)
 				if check_fetch:
 					cmd.load(filename,"%s-%d"%(pdbid,ifaceid))
 					ifaceid+=1
@@ -186,7 +186,7 @@ def load_eppic(pdbCode):
 					else:
 						print "%d Interfaces Loaded"%(ifaceid-1)
 					break
-def fetch_eppic(pdbid,ifaceid,filename):	
+def load_eppic(pdbid,ifaceid,filename):	
 		fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
 		request=urllib2.Request(fetchurl)
 		request.add_header('Accept-encoding', 'gzip')
@@ -203,4 +203,4 @@ def fetch_eppic(pdbid,ifaceid,filename):
 			is_done=0
 		return is_done
 
-cmd.extend("load_eppic",load_eppic)
+cmd.extend("fetch_eppic",fetch_eppic)
