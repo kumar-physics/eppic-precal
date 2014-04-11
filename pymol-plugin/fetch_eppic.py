@@ -122,14 +122,25 @@ class FetchEPPIC:
 
 def load_eppic(pdbCode):
 	'''
+	===========================================================================
 	DESCRIPTION
-
+	-----------
 	EPPIC:
-		EPPIC stands fro Evolutionary Protein-Protein Interface Classifier. EPPIC mainly aims at classifying the interfaces present in protein crystal lattices in order to determine whether they are biologically relevant or not. EPPIC can be accessed from www.eppic-web.org
+	------
+	EPPIC (www.eppic-web.org) stands for Evolutionary Protein-Protein Interface 
+	Classifier (Duarte et al, BMC Bionformatics, 2012). 
+	
+	EPPIC mainly aims at classifying the interfaces present in protein crystal 
+	lattices in order to determine whether they are biologically relevant or not. 
+ 
+	For more information or queries please contact us at eppic@systemsx.ch. 
+	Our team web page is: http://www.psi.ch/lbr/capitani_-guido
 
-	load_eppic is a command line tool to download interface files from EPPIC server to open in pymol
+	load_eppic is a command line tool to download interface files from 
+	EPPIC server to open in pymol
 
 	Usage:
+	------
 	Method 1:
 	load_eppic <pdbid> 
 	This command will load all the interface files for a given pdbid
@@ -146,6 +157,7 @@ def load_eppic(pdbCode):
 
 	Author : Kumaran Baskaran
 	Date   : 11.04.2014
+	===========================================================================
 	'''
 	fetchpath=cmd.get('fetch_path')
 	if pdbCode:
