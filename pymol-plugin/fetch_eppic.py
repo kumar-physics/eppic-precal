@@ -47,64 +47,73 @@ Author : Kumaran Baskaran
 Date   : 10.04.2014
 
 '''
+import sys
+
+if sys.platform!="darwin": # Tk module excluded fro mac
+
+	from Tkinter import *
+	from pymol import cmd
+	from string import atoi
+	import tkSimpleDialog
+	import tkMessageBox
+	import urllib2,StringIO,gzip
+	import gzip
+	import os
 
 
-from Tkinter import *
-from pymol import cmd
-from string import atoi
-import os
-import tkSimpleDialog
-import tkMessageBox
-import urllib2,StringIO,gzip
-import gzip
-import os
-
-
-def __init__(self):
-	# Simply add the menu entry and callback
-	self.menuBar.addmenuitem('Plugin', 'command', 'EPPIC Interface Loader',
+	def __init__(self):
+		# Simply add the menu entry and callback
+		self.menuBar.addmenuitem('Plugin', 'command', 'EPPIC Interface Loader',
 				label = 'EPPIC Interface Loader',
 				command = lambda s=self : FetchEPPIC(s))
 
 
 
-class FetchEPPIC:
-	def __init__(self, app):
-		fetchpath=cmd.get('fetch_path')
-		pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
-				'Please enter a 4-digit pdb code:',
-				parent=app.root)
-		if pdbCode:
-			if len(pdbCode)>4:
-				pdbid=pdbCode.split("-")[0]
-				ifaceid=atoi(pdbCode.split("-")[1])
-				filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-				check_fetch=self.fetch_eppic(pdbid,ifaceid,filename)
-				if check_fetch:
-					cmd.load(filename,pdbCode)
-				else:
-					tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
-							'No Interface found\n(or)\nPDB not found')
-			else:
-				ifaceid=1
-				pdbid=pdbCode
-				while(1):
+	class FetchEPPIC:
+		def __init__(self, app):
+			fetchpath=cmd.get('fetch_path')
+			pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
+					'Please enter a 4-digit pdb code:',
+					parent=app.root)
+			if pdbCode:
+				if len(pdbCode)>4:
+					pdbid=pdbCode.split("-")[0]
+					ifaceid=atoi(pdbCode.split("-")[1])
 					filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
 					check_fetch=self.fetch_eppic(pdbid,ifaceid,filename)
 					if check_fetch:
-						cmd.load(filename,"%s-%d"%(pdbid,ifaceid))
-						ifaceid+=1
+						cmd.load(filename,pdbCode)
 					else:
-						if ifaceid==1:
-							tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
-									'No Interface found\n(or)\nPDB not found')
+						tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
+								'No Interface found\n(or)\nPDB not found')
+				else:
+					ifaceid=1
+					pdbid=pdbCode
+					while(1):
+						filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
+						check_fetch=self.fetch_eppic(pdbid,ifaceid,filename)
+						if check_fetch:
+							cmd.load(filename,"%s-%d"%(pdbid,ifaceid))
+							ifaceid+=1
 						else:
-							tkMessageBox.showinfo('Loading Completed',
-									'%d interfaces loaded'%(ifaceid-1))
-						break
+							if ifaceid==1:
+								tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
+										'No Interface found\n(or)\nPDB not found')
+							else:
+								tkMessageBox.showinfo('Loading Completed',
+										'%d interfaces loaded'%(ifaceid-1))
+							break
+	
+		def fetch_eppic(self,pdbid,ifaceid,filename):
+			return load_eppic(pdbid,ifaceid,filename)
 
-	def fetch_eppic(self,pdbid,ifaceid,filename):
-		return fetch_eppic(pdbid,ifaceid,filename)
+
+
+from pymol import cmd
+from string import atoi
+import urllib2,StringIO,gzip
+import gzip
+import os
 
 def fetch_eppic(pdbCode):
 	'''
