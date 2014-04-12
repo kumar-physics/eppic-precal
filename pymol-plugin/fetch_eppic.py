@@ -47,18 +47,31 @@ Author : Kumaran Baskaran
 Date   : 10.04.2014
 
 '''
-import sys
+import sys, os
+import urllib2,StringIO,gzip
+from pymol import cmd
+from string import atoi
 
-if sys.platform!="darwin": # Tk module excluded fro mac
+
+def hasTk():
+	# Verified cases
+	# True if:
+	#  - Linux, Windows
+	#  - calling name contains X11, eg 'PyMOLX11Hybrid.app'
+	# False if:
+	#  - Mac and name is 'MacPyMol.app'
+	#  - import Tkinter throws an exception
+
+	#sys.platform!="darwin": # Tk module excluded fro mac
+	return True
+
+# If we're in a Tkinter environment, register with the plugins menu
+# Otherwise, only use command line version
+if hasTk():
 
 	from Tkinter import *
-	from pymol import cmd
-	from string import atoi
 	import tkSimpleDialog
 	import tkMessageBox
-	import urllib2,StringIO,gzip
-	import gzip
-	import os
 
 
 	def __init__(self):
@@ -67,45 +80,18 @@ if sys.platform!="darwin": # Tk module excluded fro mac
 				label = 'EPPIC Interface Loader',
 				command = lambda s=self : FetchEPPIC(s))
 
+	# Tk plugin version.
+	def fetch_eppic_plugin(app):
+		def errorfn(msg):
+			tkMessageBox.showinfo('EPPIC Loader Service', msg)
+		#get user input
+		pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
+				'Please enter a 4-digit pdb code:',
+				parent=self._app.root)
 
+		#load asynchronously
+		thread.start_new_thread(fetch_eppic_sync, (pdbCode),{'logfn':errorfn})
 
-	class FetchEPPIC:
-		def __init__(self, app):
-			fetchpath=cmd.get('fetch_path')
-			pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
-					'Please enter a 4-digit pdb code:',
-					parent=app.root)
-			if pdbCode:
-				if len(pdbCode)>4:
-					pdbid=pdbCode.split("-")[0]
-					ifaceid=atoi(pdbCode.split("-")[1])
-					filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-					check_fetch=self.fetch_eppic(pdbid,ifaceid,filename)
-					if check_fetch:
-						cmd.load(filename,pdbCode)
-					else:
-						tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
-								'No Interface found\n(or)\nPDB not found')
-				else:
-					ifaceid=1
-					pdbid=pdbCode
-					while(1):
-						filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-						check_fetch=self.fetch_eppic(pdbid,ifaceid,filename)
-						if check_fetch:
-							cmd.load(filename,"%s-%d"%(pdbid,ifaceid))
-							ifaceid+=1
-						else:
-							if ifaceid==1:
-								tkMessageBox.showinfo('Loading failed for %s'%(pdbCode),
-										'No Interface found\n(or)\nPDB not found')
-							else:
-								tkMessageBox.showinfo('Loading Completed',
-										'%d interfaces loaded'%(ifaceid-1))
-							break
-	
-		def fetch_eppic(self,pdbid,ifaceid,filename):
-			return load_eppic(pdbid,ifaceid,filename)
 
 
 
@@ -115,7 +101,8 @@ import urllib2,StringIO,gzip
 import gzip
 import os
 
-def fetch_eppic(pdbCode):
+# Main command line version
+def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
 	'''
 	===========================================================================
 	DESCRIPTION
@@ -154,7 +141,19 @@ def fetch_eppic(pdbCode):
 	Date   : 11.04.2014
 	===========================================================================
 	'''
+	if int(async):
+		thread.start_new_thread(fetch_eppic_sync, (pdbCode,name,state),kwargs)
+	else:
+		fetch_eppic_sync(pdbCode,name,state,**kwargs)
+
+# Helper version, does all the work
+def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
+	"Synchronously fetch eppic interface(s)"
 	fetchpath=cmd.get('fetch_path')
+	if logfn is None:
+		def logfn(m):
+			print(m)
+
 	if pdbCode:
 		if len(pdbCode)>4:
 			pdbid=pdbCode.split("-")[0]
@@ -164,12 +163,12 @@ def fetch_eppic(pdbCode):
 			if check_fetch:
 				cmd.load(filename,pdbCode)
 			else:
-				print "No PDB (or) Interface Found"
+				logfn("No PDB or Interface Found")
 
 		else:
 			ifaceid=1
 			pdbid=pdbCode
-			while(1):
+			while True:
 				filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
 				check_fetch=load_eppic(pdbid,ifaceid,filename)
 				if check_fetch:
@@ -177,28 +176,38 @@ def fetch_eppic(pdbCode):
 					ifaceid+=1
 				else:
 					if ifaceid==1:
-						print "No PBD (or) Interface Found"
+						logfn( "No PBD or Interface Found")
 					else:
-						print "%d Interfaces Loaded"%(ifaceid-1)
+						logfn( "%d Interfaces Loaded"%(ifaceid-1) )
 					break
-def load_eppic(pdbid,ifaceid,filename):	
-		fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
-		request=urllib2.Request(fetchurl)
-		request.add_header('Accept-encoding', 'gzip')
-		opener=urllib2.build_opener()
-		try:
-			f=opener.open(request)
-		except urllib2.HTTPError:
-			return 0
+	else: #no pdbcode
+		logfn( "No PDB or Interface given")
+
+def load_eppic(pdbid,ifaceid,filename):
+	"""Download the interface from eppic
+	return whether the download was successfull
+	"""
+	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
+
+	is_done=False
+
+	request=urllib2.Request(fetchurl)
+	request.add_header('Accept-encoding', 'gzip')
+	opener=urllib2.build_opener()
+	try:
+		f=opener.open(request)
 		compresseddata = f.read()
 		if len(compresseddata)>0:
 			compressedstream = StringIO.StringIO(compresseddata)
 			gzipper = gzip.GzipFile(fileobj=compressedstream)
 			data = gzipper.read()
 			open(filename,'w').write(data)
-			is_done=1
-		else:
-			is_done=0
-		return is_done
+			is_done=True
+	except urllib2.HTTPError:
+		pass
+	except IOError:
+		print "Error writing to "+filename
+		pass
+	return is_done
 
 cmd.extend("fetch_eppic",fetch_eppic)
