@@ -47,7 +47,7 @@ Author : Kumaran Baskaran
 Date   : 10.04.2014
 
 '''
-import sys, os
+import sys, os, thread
 import urllib2,StringIO,gzip
 from pymol import cmd
 from string import atoi
@@ -69,28 +69,36 @@ def hasTk():
 # Otherwise, only use command line version
 if hasTk():
 
-	from Tkinter import *
-	import tkSimpleDialog
-	import tkMessageBox
+	try:
+		from Tkinter import *
+		import tkSimpleDialog
+		import tkMessageBox
 
 
-	def __init__(self):
-		# Simply add the menu entry and callback
-		self.menuBar.addmenuitem('Plugin', 'command', 'EPPIC Interface Loader',
-				label = 'EPPIC Interface Loader',
-				command = lambda s=self : FetchEPPIC(s))
+		def __init__(self):
+			#print self.root.wm_title()
 
-	# Tk plugin version.
-	def fetch_eppic_plugin(app):
-		def errorfn(msg):
-			tkMessageBox.showinfo('EPPIC Loader Service', msg)
-		#get user input
-		pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
-				'Please enter a 4-digit pdb code:',
-				parent=self._app.root)
+			# Simply add the menu entry and callback
+			self.menuBar.addmenuitem('Plugin', 'command', 'EPPIC Interface Loader',
+					label = 'EPPIC Interface Loader',
+					command = lambda s=self : fetch_eppic_plugin(s))
 
-		#load asynchronously
-		thread.start_new_thread(fetch_eppic_sync, (pdbCode),{'logfn':errorfn})
+		# Tk plugin version.
+		def fetch_eppic_plugin(app):
+			def errorfn(msg):
+				tkMessageBox.showinfo('EPPIC Loader Service', msg,parent=app.root)
+			#get user input
+			pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
+					'Please enter a 4-digit pdb code:',
+					parent=app.root)
+
+			# Tk isn't thread safe, so we run synchronously.
+			# We could also use events to communicate errors to the mainloop,
+			# but this seems like too much work for a minor feature
+			#thread.start_new_thread(fetch_eppic_sync, (pdbCode,None,0,errorfn))
+			fetch_eppic_sync(pdbCode,logfn=errorfn)
+	except ImportError:
+		pass #no Tk
 
 
 
@@ -149,6 +157,7 @@ def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
 # Helper version, does all the work
 def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 	"Synchronously fetch eppic interface(s)"
+	print("fetch_eppic_sync")
 	fetchpath=cmd.get('fetch_path')
 	if logfn is None:
 		def logfn(m):
@@ -201,12 +210,14 @@ def load_eppic(pdbid,ifaceid,filename):
 			compressedstream = StringIO.StringIO(compresseddata)
 			gzipper = gzip.GzipFile(fileobj=compressedstream)
 			data = gzipper.read()
-			open(filename,'w').write(data)
-			is_done=True
+			try:
+				open(filename,'w').write(data)
+				is_done=True
+			except IOError:
+				print "Error writing to "+filename
 	except urllib2.HTTPError:
 		pass
 	except IOError:
-		print "Error writing to "+filename
 		pass
 	return is_done
 
