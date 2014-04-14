@@ -157,7 +157,6 @@ def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
 # Helper version, does all the work
 def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 	"Synchronously fetch eppic interface(s)"
-	print("fetch_eppic_sync")
 	fetchpath=cmd.get('fetch_path')
 	if logfn is None:
 		def logfn(m):
@@ -168,7 +167,7 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 			pdbid=pdbCode.split("-")[0]
 			ifaceid=atoi(pdbCode.split("-")[1])
 			filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-			check_fetch=load_eppic(pdbid,ifaceid,filename)
+			check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
 			if check_fetch:
 				cmd.load(filename,pdbCode)
 			else:
@@ -192,13 +191,17 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 	else: #no pdbcode
 		logfn( "No PDB or Interface given")
 
-def load_eppic(pdbid,ifaceid,filename):
+def load_eppic(pdbid,ifaceid,filename,logfn=None):
 	"""Download the interface from eppic
 	return whether the download was successfull
 	"""
 	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
 
 	is_done=False
+
+	if logfn is None:
+		def logfn(m):
+			print(m)
 
 	request=urllib2.Request(fetchurl)
 	request.add_header('Accept-encoding', 'gzip')
@@ -214,7 +217,7 @@ def load_eppic(pdbid,ifaceid,filename):
 				open(filename,'w').write(data)
 				is_done=True
 			except IOError:
-				print "Error writing to "+filename
+				logfn( "Error writing to "+filename)
 	except urllib2.HTTPError:
 		pass
 	except IOError:
