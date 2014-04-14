@@ -4,46 +4,74 @@ PyMOL plugin to load EPPIC interface files
 
 DESCRIPTION
 
-EPPIC:
-	EPPIC (www.eppic-web.org) stands for Evolutionary Protein-Protein Interface Classifier (Duarte et al, BMC Bionformatics, 2012). 
-	EPPIC mainly aims at classifying the interfaces present in protein crystal lattices in order to determine whether they are 
-	biologically relevant or not.  
-	For more information or queries please contact us at eppic@systemsx.ch. Our team web page is: http://www.psi.ch/lbr/capitani_-guido
+	EPPIC (www.eppic-web.org) stands for Evolutionary Protein-Protein Interface
+	Classifier (Duarte et al, BMC Bionformatics, 2012).
 
-Installation:
-copy this file to /modules/pmg_tk/startup/ in the pymol installation path
-restart pymol, now you will have additional entry called "Eppic Interface Loader" in Plugin menu
+	EPPIC mainly aims at classifying the interfaces present in protein crystal
+	lattices in order to determine whether they are biologically relevant or
+	not.
+
+	For more information or queries please contact us at eppic@systemsx.ch. Our
+	team web page is: http://www.psi.ch/lbr/capitani_-guido
+
+INSTALLATION
+
+	To install from within pymol, from the Plugins menu, choose 'Manage
+	Plugins>Install...' and select fetch_eppic.py from your hard drive.
+
+	To install manually, copy fetch_eppic.py to 'PYMOLPATH/modules/pmg_tk/startup/' and
+	restart pymol.
+
+	After installation you will have additional entry called "Eppic Interface Loader" in Plugin menu.
+
+	Note: Users of MacPyMol.app do not have a plugins menu, and should use the fetch_eppic command.
+
+USAGE--PLUGIN MENU
+
+	Entering a pdb code will load all interfaces for a given pdbid
+	Example: 2gs2
+
+	Entering pdbid-interfaceid will load only a specified interface (as
+	numbered by EPPIC, which sorts interfaces by their area)
+	Example: 2gs2-2
 
 
-Usage:
-Entering a pdb code will load all interfaces for a given pdbid
-Example: 2gs2
-Entering pdbid-interfaceid will load only a specified interface (as numbered by EPPIC, which sorts interfaces by their area) 
-Example: 2gs2-2
+USAGE--COMMAND LINE
+	fetch_eppic pdbid[-interfaceid] [,name [,state [,async]]]
 
+ARGUMENTS
+	Arguments mirror arguments to fetch
 
-Command line:
-load_eppic is the command line tool for this plugin.
+	pdbid = string: Either a PDB ID or an EPPIC interface in the format XXXX-N,
+	where XXXX is the pdb id and N is the interface number. {required}
 
+	name = string: name of the pymol object to lave to {default: pdbid}
 
-Usage:
-	Method 1:
-	load_eppic <pdbid> 
-	This command will load all the interface files for a given pdbid
-	Example:
-	load_eppic 2gs2
+	state = integer: number of the state into which the content should be
+	loaded, or 0 for append {default: 0}
 
-	Method 2:
-	load_eppic <pdbid-interfaceid>
-	This command will load only a specified interface
-	Example:
-	load_eppic 2gs2-2
+	async = integer: 0 to force synchronous execution {default:1}
+
+	Other arguments will be passed directly to load.
+
+EXAMPLES
+
+	#Load all the interface files for 2gs2
+	fetch_eppic 2gs2
+
+	#Load only the second interface
+	fetch_eppic 2gs2-2
+
+	#Load all interfaces as states of a single object
+	fetch_eppic 2gs2, name=2gs2_eppic
+
+	#Load synchronously for chaining commands
+	fetch_eppic 2gs2-1, name=interface, async=0; show cartoon, interface
 
 	Interface ids are those listed in the EPPIC server output
 
 
 Author : Kumaran Baskaran
-
 Date   : 10.04.2014
 
 '''
@@ -114,36 +142,51 @@ def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
 	'''
 	===========================================================================
 	DESCRIPTION
-	-----------
-	EPPIC:
-	------
-	EPPIC (www.eppic-web.org) stands for Evolutionary Protein-Protein Interface 
-	Classifier (Duarte et al, BMC Bionformatics, 2012). 
 
-	EPPIC mainly aims at classifying the interfaces present in protein crystal 
-	lattices in order to determine whether they are biologically relevant or not. 
- 
-	For more information or queries please contact us at eppic@systemsx.ch. 
-	Our team web page is: http://www.psi.ch/lbr/capitani_-guido
+	    EPPIC (www.eppic-web.org) stands for Evolutionary Protein-Protein Interface
+	    Classifier (Duarte et al, BMC Bionformatics, 2012).
 
-	load_eppic is a command line tool to download interface files from 
-	EPPIC server to open in pymol
+	    EPPIC mainly aims at classifying the interfaces present in protein crystal
+	    lattices in order to determine whether they are biologically relevant or not.
 
-	Usage:
-	------
-	Method 1:
-	fetch_eppic <pdbid> 
-	This command will load all the interface files for a given pdbid
-	example:
-	fetch_eppic 2gs2
+	    For more information or queries please contact us at eppic@systemsx.ch.
+	    Our team web page is: http://www.psi.ch/lbr/capitani_-guido
 
-	Method 2:
-	fetch_eppic <pdbid-interfaceid>
-	This command will load only specified interface
-	example:
-	fetch_eppic 2gs2-2
+	    fetch_eppic is a command line tool to download interface files from
+	    EPPIC server to open in pymol
 
-	The interface ids are listed in EPPIC server
+	USAGE--COMMAND LINE
+	    fetch_eppic pdbid[-interfaceid] [,name [,state [,async]]]
+
+	ARGUMENTS
+	    Arguments mirror arguments to fetch
+
+	    pdbid = string: Either a PDB ID or an EPPIC interface in the format XXXX-N,
+	    where XXXX is the pdb id and N is the interface number.  The interface ids
+	    are listed in EPPIC server (eppic-web.org). {required}
+
+	    name = string: name of the pymol object to lave to {default: pdbid}
+
+	    state = integer: number of the state into which the content should be
+	    loaded, or 0 for append {default: 0}
+
+	    async = integer: 0 to force synchronous execution {default:1}
+
+	    Other arguments will be passed directly to load.
+
+	EXAMPLES
+
+	    #Load all the interface files for 2gs2
+	    fetch_eppic 2gs2
+
+	    #Load only the second interface
+	    fetch_eppic 2gs2-2
+
+	    #Load all interfaces as states of a single object
+	    fetch_eppic 2gs2, name=2gs2_eppic
+
+	    #Load synchronously for chaining commands
+	    fetch_eppic 2gs2-1, name=interface, async=0; show cartoon, interface
 
 	Author : Kumaran Baskaran
 	Date   : 11.04.2014
@@ -167,9 +210,11 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 			pdbid=pdbCode.split("-")[0]
 			ifaceid=atoi(pdbCode.split("-")[1])
 			filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
+			if name is None:
+				name = pdbCode
 			check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
 			if check_fetch:
-				cmd.load(filename,pdbCode)
+				cmd.load(filename,name,state,format="pdb",**kwargs)
 			else:
 				logfn("No PDB or Interface Found")
 
@@ -178,9 +223,13 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 			pdbid=pdbCode
 			while True:
 				filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
+				if name is None:
+					objname = "%s-%d"%(pdbid,ifaceid)
+				else:
+					objname = name
 				check_fetch=load_eppic(pdbid,ifaceid,filename)
 				if check_fetch:
-					cmd.load(filename,"%s-%d"%(pdbid,ifaceid))
+					cmd.load(filename,objname,state,format="pdb",**kwargs)
 					ifaceid+=1
 				else:
 					if ifaceid==1:
