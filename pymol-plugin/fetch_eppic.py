@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# vim:noet ts=4 sw=4
+# vim:noet ts=4 sw=4 ff=unix fenc=utf-8
 '''
 PyMOL plugin to load EPPIC interface files
 
