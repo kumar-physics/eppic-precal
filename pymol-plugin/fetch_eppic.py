@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# vim:noet ts=4 sw=4
 '''
 PyMOL plugin to load EPPIC interface files
 
@@ -82,6 +83,9 @@ from string import atoi
 
 
 def hasTk():
+	""" Make an educated guess as to whether Tk is installed,
+	hopefully without triggering any installation on Macs
+	"""
 	# Verified cases
 	# True if:
 	#  - Linux, Windows
@@ -90,8 +94,22 @@ def hasTk():
 	#  - Mac and name is 'MacPyMol.app'
 	#  - import Tkinter throws an exception
 
-	#sys.platform!="darwin": # Tk module excluded fro mac
-	return True
+	hasTk = True
+	if sys.platform=="darwin": #Mac
+		# Hack: check the path for entries containing 'X11'
+		hasTk = any([ "X11" in p.upper() for p in sys.path])
+	
+	if hasTk:
+		try:
+			from Tkinter import *
+			import tkSimpleDialog
+			import tkMessageBox
+		except ImportError:
+			hasTk = False
+
+	return hasTk
+
+
 
 # If we're in a Tkinter environment, register with the plugins menu
 # Otherwise, only use command line version
