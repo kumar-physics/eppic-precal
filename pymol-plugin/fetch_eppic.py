@@ -101,9 +101,7 @@ def hasTk():
 	
 	if hasTk:
 		try:
-			from Tkinter import *
-			import tkSimpleDialog
-			import tkMessageBox
+			import Tkinter
 		except ImportError:
 			hasTk = False
 
