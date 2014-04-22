@@ -78,6 +78,7 @@ Date   : 10.04.2014
 '''
 import sys, os, thread
 import urllib2,StringIO,gzip
+import pymol
 from pymol import cmd
 from string import atoi
 
@@ -86,27 +87,7 @@ def hasTk():
 	""" Make an educated guess as to whether Tk is installed,
 	hopefully without triggering any installation on Macs
 	"""
-	# Verified cases
-	# True if:
-	#  - Linux, Windows
-	#  - calling name contains X11, eg 'PyMOLX11Hybrid.app'
-	# False if:
-	#  - Mac and name is 'MacPyMol.app'
-	#  - import Tkinter throws an exception
-
-	hasTk = True
-	if sys.platform=="darwin": #Mac
-		# Hack: check the path for entries containing 'X11'
-		hasTk = any([ "X11" in p.upper() for p in sys.path])
-	
-	if hasTk:
-		try:
-			import Tkinter
-		except ImportError:
-			hasTk = False
-
-	return hasTk
-
+	return pymol._ext_gui
 
 
 # If we're in a Tkinter environment, register with the plugins menu
