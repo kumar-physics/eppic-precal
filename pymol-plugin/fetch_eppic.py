@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# vim:noet ts=4 sw=4 ff=unix fenc=utf-8
+# vim:noet ts=4 sw=4
 '''
 PyMOL plugin to load EPPIC interface files
 
@@ -78,7 +78,6 @@ Date   : 10.04.2014
 '''
 import sys, os, thread
 import urllib2,StringIO,gzip
-import pymol
 from pymol import cmd
 from string import atoi
 
@@ -87,7 +86,29 @@ def hasTk():
 	""" Make an educated guess as to whether Tk is installed,
 	hopefully without triggering any installation on Macs
 	"""
-	return pymol._ext_gui
+	# Verified cases
+	# True if:
+	#  - Linux, Windows
+	#  - calling name contains X11, eg 'PyMOLX11Hybrid.app'
+	# False if:
+	#  - Mac and name is 'MacPyMol.app'
+	#  - import Tkinter throws an exception
+
+	hasTk = True
+	if sys.platform=="darwin": #Mac
+		# Hack: check the path for entries containing 'X11'
+		hasTk = any([ "X11" in p.upper() for p in sys.path])
+	
+	if hasTk:
+		try:
+			from Tkinter import *
+			import tkSimpleDialog
+			import tkMessageBox
+		except ImportError:
+			hasTk = False
+
+	return hasTk
+
 
 
 # If we're in a Tkinter environment, register with the plugins menu
@@ -204,16 +225,40 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 
 	if pdbCode:
 		if len(pdbCode)>4:
-			pdbid=pdbCode.split("-")[0]
-			ifaceid=atoi(pdbCode.split("-")[1])
-			filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-			if name is None:
-				name = pdbCode
-			check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
-			if check_fetch:
-				cmd.load(filename,name,state,format="pdb",**kwargs)
+			if len(pdbCode.split("-"))==2:
+				pdbid=pdbCode.split("-")[0]
+				ifaceid=pdbCode.split("-")[1]
+				filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbid,ifaceid))
+				if name is None:
+					name = pdbCode
+				check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
+				if check_fetch:
+					cmd.load(filename,name,state,format="pdb",**kwargs)
+					cmd.util.color_chains()
+				else:
+					logfn("No PDB or Interface Found")
+			elif len(pdbCode.split("-"))==3:
+				pdbid=pdbCode.split("-")[0]
+				ifaceid=pdbCode.split("-")[1]
+				chain=pdbCode.split("-")[2]
+				filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbid,ifaceid))
+				if name is None:
+					name = pdbCode
+					name2 = "%s_%s_%s"%(pdbid,ifaceid,chain)
+				check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
+				if check_fetch:
+					cmd.load(filename,name,state,format="pdb",**kwargs)
+					cmd.show_as('cartoon','%s'%(name))
+					cmd.util.color_chains("%s"%(name))
+					cmd.extract('%s'%(name2),"%s//%s//"%(name,chain))
+					cmd.show_as('surface',"%s"%(name2))
+					cmd.spectrum(expression='b',palette='rainbow',selection='%s'%(name2),minimum=0.0,maximum=3.3219280948873626)
+					#cmd.color('salmon','%s'%(name))
+					
+				else:
+					logfn("No PDB or Interface Found")
 			else:
-				logfn("No PDB or Interface Found")
+				logfn("Input not in right format example : pdb,id,chain")
 
 		else:
 			ifaceid=1
@@ -233,6 +278,7 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 						logfn( "No PBD or Interface Found")
 					else:
 						logfn( "%d Interfaces Loaded"%(ifaceid-1) )
+						cmd.util.color_chains()
 					break
 	else: #no pdbcode
 		logfn( "No PDB or Interface given")
@@ -241,7 +287,7 @@ def load_eppic(pdbid,ifaceid,filename,logfn=None):
 	"""Download the interface from eppic
 	return whether the download was successfull
 	"""
-	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
+	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%s"%(pdbid,ifaceid)
 
 	is_done=False
 
