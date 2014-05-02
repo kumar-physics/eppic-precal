@@ -23,7 +23,7 @@ INSTALLATION
 	To install manually, copy fetch_eppic.py to 'PYMOLPATH/modules/pmg_tk/startup/' and
 	restart pymol.
 
-	After installation you will have additional entry called "Eppic Interface Loader" in Plugin menu.
+	After installation you will have an additional entry called "Eppic Interface Loader" in Plugin menu.
 
 	Note: Users of MacPyMol.app do not have a plugins menu, and should use the fetch_eppic command.
 
@@ -46,7 +46,7 @@ ARGUMENTS
 	pdbid = string: Either a PDB ID or an EPPIC interface in the format XXXX-N,
 	where XXXX is the pdb id and N is the interface number. {required}
 
-	name = string: name of the pymol object to lave to {default: pdbid}
+	name = string: name of the PyMOL object to lave to {default: pdbid}
 
 	state = integer: number of the state into which the content should be
 	loaded, or 0 for append {default: 0}
