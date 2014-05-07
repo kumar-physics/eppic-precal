@@ -9,7 +9,7 @@ Last step transfer the file to /tmp dir of the mysql hosting server
 then use this command in mysql
 
 load data infile '/tmp/SeqCluster.tab' into table SeqCluster(pdbCode,repChain,c100,c95,c90,c80,c70,c60,c50,chainCluster_uid);
-''''
+'''
 
 
 import sys,os
@@ -76,7 +76,7 @@ def get_clusterid(uid,fname):
 	return n[0]
 
 def get_seq_data(dbname):
-	cmd="mysql %s -B -N -e \"select uid,pdbCode,repChain,msaAlignedSeq from ChainCluster where msaAlignedSeq is not null limit 1000;\" > seq.dat"%(dbname)
+	cmd="mysql %s -B -N -e \"select uid,pdbCode,repChain,msaAlignedSeq from ChainCluster where msaAlignedSeq is not null;\" > seq.dat"%(dbname)
 	os.system(cmd)
 
 def create_table(dbname):
@@ -89,4 +89,4 @@ if __name__=="__main__":
 	convert_fasta("seq.dat")
 	run_cdhit("cls")
 	parse_output("seq.dat")
-	create_table(dbname)
+	#create_table(dbname)
