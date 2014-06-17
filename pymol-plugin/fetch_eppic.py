@@ -23,7 +23,7 @@ INSTALLATION
 	To install manually, copy fetch_eppic.py to 'PYMOLPATH/modules/pmg_tk/startup/' and
 	restart pymol.
 
-	After installation you will have additional entry called "Eppic Interface Loader" in Plugin menu.
+	After installation you will have an additional entry called "Eppic Interface Loader" in Plugin menu.
 
 	Note: Users of MacPyMol.app do not have a plugins menu, and should use the fetch_eppic command.
 
@@ -46,7 +46,7 @@ ARGUMENTS
 	pdbid = string: Either a PDB ID or an EPPIC interface in the format XXXX-N,
 	where XXXX is the pdb id and N is the interface number. {required}
 
-	name = string: name of the pymol object to lave to {default: pdbid}
+	name = string: name of the PyMOL object to lave to {default: pdbid}
 
 	state = integer: number of the state into which the content should be
 	loaded, or 0 for append {default: 0}
@@ -225,16 +225,40 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 
 	if pdbCode:
 		if len(pdbCode)>4:
-			pdbid=pdbCode.split("-")[0]
-			ifaceid=atoi(pdbCode.split("-")[1])
-			filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-			if name is None:
-				name = pdbCode
-			check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
-			if check_fetch:
-				cmd.load(filename,name,state,format="pdb",**kwargs)
+			if len(pdbCode.split("-"))==2:
+				pdbid=pdbCode.split("-")[0]
+				ifaceid=pdbCode.split("-")[1]
+				filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbid,ifaceid))
+				if name is None:
+					name = pdbCode
+				check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
+				if check_fetch:
+					cmd.load(filename,name,state,format="pdb",**kwargs)
+					cmd.util.color_chains()
+				else:
+					logfn("No PDB or Interface Found")
+			elif len(pdbCode.split("-"))==3:
+				pdbid=pdbCode.split("-")[0]
+				ifaceid=pdbCode.split("-")[1]
+				chain=pdbCode.split("-")[2]
+				filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbid,ifaceid))
+				if name is None:
+					name = pdbCode
+					name2 = "%s_%s_%s"%(pdbid,ifaceid,chain)
+				check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
+				if check_fetch:
+					cmd.load(filename,name,state,format="pdb",**kwargs)
+					cmd.show_as('cartoon','%s'%(name))
+					cmd.util.color_chains("%s"%(name))
+					cmd.extract('%s'%(name2),"%s//%s//"%(name,chain))
+					cmd.show_as('surface',"%s"%(name2))
+					cmd.spectrum(expression='b',palette='rainbow',selection='%s'%(name2),minimum=0.0,maximum=3.3219280948873626)
+					#cmd.color('salmon','%s'%(name))
+					
+				else:
+					logfn("No PDB or Interface Found")
 			else:
-				logfn("No PDB or Interface Found")
+				logfn("Input not in right format example : pdb,id,chain")
 
 		else:
 			ifaceid=1
@@ -254,6 +278,7 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 						logfn( "No PBD or Interface Found")
 					else:
 						logfn( "%d Interfaces Loaded"%(ifaceid-1) )
+						cmd.util.color_chains()
 					break
 	else: #no pdbcode
 		logfn( "No PDB or Interface given")
@@ -262,7 +287,7 @@ def load_eppic(pdbid,ifaceid,filename,logfn=None):
 	"""Download the interface from eppic
 	return whether the download was successfull
 	"""
-	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%d"%(pdbid,ifaceid)
+	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%s"%(pdbid,ifaceid)
 
 	is_done=False
 
