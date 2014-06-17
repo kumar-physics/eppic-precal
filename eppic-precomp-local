@@ -64,6 +64,8 @@ mv $BLASTDB/$DATABASE_NAME $TO_MERLIN/
 mv $UNIQUE_FASTA $TO_MERLIN/
 cp BlastPDB $TO_MERLIN/
 cp Cp2Nodes $TO_MERLIN/
+cp prepare_blast.py $TO_MERLIN/
+cp parse_blast.py $TO_MERLIN/
 cp hosts.list $TO_MERLIN/
 cp eppic-precomp-merlin $TO_MERLIN/
 cp $DOWNLOAD/pdb_chain_uniprot.lst $TO_MERLIN/$DATABASE_NAME/
