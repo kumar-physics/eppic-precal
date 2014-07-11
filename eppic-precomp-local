@@ -27,11 +27,21 @@ echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished downloading "
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started uploading data into MySql database "
 ./UploadToDatabase -d $DOWNLOAD -j $EPPIC_JAR -n $DATABASE_NAME 1>>eppic_precomp.out 2>>eppic_precomp.err
+#if [[ $? -ne 0 ]]; then
+#	echo "UploadToDatabase failed"
+#	exit 1
+#fi
+#echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished uploading data into MySql database "
+echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started uploading data into MySql database "
+./UploadToDatabase2 -d $DOWNLOAD -j $EPPIC_JAR -n $DATABASE_NAME 1>>eppic_precomp.out 2>>eppic_precomp.err
 if [[ $? -ne 0 ]]; then
 	echo "UploadToDatabase failed"
 	exit 1
 fi
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished uploading data into MySql database "
+
+
+
 
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Started updating blast db "
 ./UpdateBlastDB -d $BLASTDB 1>>eppic_precomp.out 2>>eppic_precomp.err

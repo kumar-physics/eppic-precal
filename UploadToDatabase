@@ -119,35 +119,6 @@ echo "Creating indices.."
 mysql $DATABASE_NAME <<EOF
 CREATE INDEX UNIPROTID_IDX ON uniprot (uniprot_id);
 EOF
-#------------Create taxonomy table-----------------------------
-table=taxonomy
-# creating tables
-echo "`date +%d/%m/%y-%H:%M:%S` INFO: Creating $table table..."
-mysql $DATABASE_NAME <<EOF
-DROP TABLE IF EXISTS $table;
-
-CREATE TABLE $table (
- tax_id int PRIMARY KEY,
- mnemonic varchar(20),
- scientific varchar(255),
- common varchar(255),
- synonym varchar(255),
- other text,
- reviewed varchar(20),
- rank varchar(20),
- lineage text,
- parent int
- 
-);
-EOF
-#-------------------------------------------------------------
-# loading data
-echo "`date +%d/%m/%y-%H:%M:%S` INFO: Loading data into $table table"
-mysql --enable-local $DATABASE_NAME <<EOF
-LOAD DATA LOCAL INFILE '$DOWNLOAD/taxonomy-all.tab' INTO TABLE $table IGNORE 1 LINES;
-SHOW WARNINGS;
-EOF
-
 echo "`date +%d/%m/%y-%H:%M:%S` INFO: Finished loading data into database."
 
 
