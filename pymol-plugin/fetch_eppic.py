@@ -74,13 +74,15 @@ EXAMPLES
 
 Author : Kumaran Baskaran
 Date   : 10.04.2014
-
+Version: 0.1
 '''
 import sys, os, thread
 import urllib2,StringIO,gzip
 import pymol
-from pymol import cmd
+from pymol import cmd, plugins
 from string import atoi
+
+_version = "0.1"
 
 
 def hasTk():
@@ -102,28 +104,136 @@ if hasTk():
 		import tkMessageBox
 
 
-		def __init__(self):
+		def __init_plugin__(self=None):
 			#print self.root.wm_title()
+			print "Loaded fetch_eppic plugin version %s"%_version
 
 			# Simply add the menu entry and callback
-			self.menuBar.addmenuitem('Plugin', 'command', 'EPPIC Interface Loader',
-					label = 'EPPIC Interface Loader',
-					command = lambda s=self : fetch_eppic_plugin(s))
+			plugins.addmenuitem('EPPIC Interface Loader Service', fetch_eppic_plugin)
 
 		# Tk plugin version.
-		def fetch_eppic_plugin(app):
-			def errorfn(msg):
-				tkMessageBox.showinfo('EPPIC Loader Service', msg,parent=app.root)
-			#get user input
-			pdbCode = tkSimpleDialog.askstring('EPPIC Loader Service',
-					'Please enter a 4-digit pdb code:',
-					parent=app.root)
+		def fetch_eppic_plugin():
+			print "Getting PMGApp"
+			app = plugins.get_pmgapp()
+			print "Getting TK"
+			root = plugins.get_tk_root()
 
-			# Tk isn't thread safe, so we run synchronously.
-			# We could also use events to communicate errors to the mainloop,
-			# but this seems like too much work for a minor feature
-			#thread.start_new_thread(fetch_eppic_sync, (pdbCode,None,0,errorfn))
-			fetch_eppic_sync(pdbCode,logfn=errorfn)
+			print "Getting panel"
+			panel = EppicPanel(root)
+
+
+
+
+		class EppicPanel:
+			"Tk panel for eppic input"
+
+			# Labels for mode options
+			_ALL_SPLIT = u"All Interfaces–Several Objects"
+			_ALL_JOINED = u"All Interfaces–Single Object"
+			_SINGLE = u"Single Interface"
+
+			def errorfn(self,msg):
+				tkMessageBox.showinfo('EPPIC Interface Loader Service', msg,parent=plugins.get_tk_root())
+
+			def __init__(self, master):
+				frame = Toplevel(master)
+				frame.title("EPPIC Interface Loader Service")
+				frame.minsize(300,0)
+				#frame.resizable(0,0)
+
+				self.frame = frame
+
+				row=0
+				Label(frame, text="PDB ID").grid(row=row)
+				self.pdbid = Entry(frame)
+				self.pdbid.grid(row=row,column=1)
+				
+				#checkbutton.grid(columnspan=2, sticky=W)
+				
+				row+=1
+				# All options. Note that changeMode is sensitive to changes in order here
+				
+				self.selectedMode = StringVar(frame)
+				self.selectedMode.set(self._ALL_SPLIT) # default value
+				
+				# Create OptionMenu with all options
+				mode = OptionMenu(frame,self.selectedMode,
+						self._ALL_SPLIT, self._ALL_JOINED, self._SINGLE,
+						command=self.changeMode)
+				mode.grid(row=row,columnspan=2)
+				
+				#self.listbox = Listbox(frame,selectmode=SINGLE)
+				#self.listbox.grid(row=row,columnspan=2)
+				#self.listbox.insert(END, u"Single Interface")
+				#self.listbox.insert(END, u"All Interfaces–Single Object")
+				#self.listbox.insert(END, u"Single Interface–Several Objects")
+				
+				row+=1
+				self.ifacelabel = Label(frame, text="Interface No.")
+				self.ifacelabel.grid(row=row)
+				self.ifaceno = Entry(frame)
+				self.ifaceno.grid(row=row,column=1)
+
+
+				row+=1
+				cancel = Button(frame, text="Cancel", command=self.cancel)
+				cancel.grid(row=row,column=0)
+				
+				ok = Button(frame, text="OK", command=self.submit)
+				ok.grid(row=row,column=1)
+
+				# Disable iface input
+				self.changeMode()
+
+				ok.focus_set()
+				
+
+			def changeMode(self,mode=None):
+				"Disables/enables the interface input box depending on the mode dropdown"
+				#print("Selected Mode is %s"%self.selectedMode.get())
+				#print("Mode param is %s"%mode)
+				if mode is None:
+					mode = self.selectedMode.get()
+				if mode == self._SINGLE: # Single interface
+					self.ifacelabel.config(state=NORMAL)
+					self.ifaceno.config(state=NORMAL)
+				else: # all interfaces
+					self.ifacelabel.config(state=DISABLED)
+					self.ifaceno.config(state=DISABLED)
+
+			def cancel(self):
+				#self.errorfn("Cancel")
+				self.frame.destroy()
+
+			def submit(self):
+				"Handles the OK button"
+
+				pdbCode = self.pdbid.get()
+				iface = self.ifaceno.get() #iface number as string
+				mode = self.selectedMode.get()
+
+				#Default params
+				request = pdbCode
+				name=None
+				state=0
+
+				if mode == self._SINGLE: # Single interface
+					request = "%s-%s" % (pdbCode,iface)
+				elif mode == self._ALL_JOINED: # Single object
+					name = "%s_eppic" % (pdbCode)
+				elif mode == self._ALL_SPLIT: # Multiple objects
+					pass #default
+
+				print("Fetching "+request)
+
+				# Tk isn't thread safe, so we run synchronously.
+				# We could also use events to communicate errors to the mainloop,
+				# but this seems like too much work for a minor feature
+				#thread.start_new_thread(fetch_eppic_sync, (pdbCode,None,0,self.errorfn))
+				fetch_eppic_sync(request,name,state,logfn=self.errorfn)
+
+				self.frame.quit()
+
 	except ImportError:
 		pass #no Tk
 
@@ -258,7 +368,7 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 					if ifaceid==1:
 						logfn( "No PBD or Interface Found")
 					else:
-						logfn( "%d Interfaces Loaded"%(ifaceid-1) )
+						#logfn( "%d Interfaces Loaded"%(ifaceid-1) )
 						cmd.util.color_chains()
 					break
 	else: #no pdbcode
