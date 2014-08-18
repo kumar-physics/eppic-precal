@@ -256,7 +256,7 @@ import gzip
 import os
 
 # Main command line version
-def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
+def fetch_eppic(pdbCode,iface=0,name=None,state=0,async=1, **kwargs):
 	'''
 	===========================================================================
 	DESCRIPTION
@@ -274,16 +274,19 @@ def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
 	    EPPIC server to open in pymol
 
 	USAGE--COMMAND LINE
-	    fetch_eppic pdbid[-interfaceid] [,name [,state [,async]]]
+	    fetch_eppic pdbid, [interfaceid, [,name [,state [,async]]]]
 
 	ARGUMENTS
 	    Arguments mirror arguments to fetch
 
-	    pdbid = string: Either a PDB ID or an EPPIC interface in the format XXXX-N,
-	    where XXXX is the pdb id and N is the interface number.  The interface ids
-	    are listed in EPPIC server (eppic-web.org). {required}
+	    pdbid = string: PDB ID {required}
 
-	    name = string: name of the pymol object to lave to {default: pdbid}
+		iface = integer: EPPIC interface number, as listed on the EPPIC server
+		(eppic-web.org). Use 0 to load all interfaces.
+
+		name = string: name of the pymol object to save to. For multiple
+		interfaces include the string '{}', which will be replaced with the
+		interface number {default: <pdbid>-<iface>}
 
 	    state = integer: number of the state into which the content should be
 	    loaded, or 0 for append {default: 0}
@@ -298,7 +301,7 @@ def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
 	    fetch_eppic 2gs2
 
 	    #Load only the second interface
-	    fetch_eppic 2gs2-2
+		fetch_eppic 2gs2, 2
 
 	    #Load all interfaces as states of a single object
 	    fetch_eppic 2gs2, name=2gs2_eppic
@@ -311,83 +314,56 @@ def fetch_eppic(pdbCode,name=None,state=0,async=1, **kwargs):
 	===========================================================================
 	'''
 	if int(async):
-		thread.start_new_thread(fetch_eppic_sync, (pdbCode,name,state),kwargs)
+		thread.start_new_thread(fetch_eppic_sync, (pdbCode,iface,name,state),kwargs)
 	else:
-		fetch_eppic_sync(pdbCode,name,state,**kwargs)
+		fetch_eppic_sync(pdbCode,iface,name,state,**kwargs)
 
 # Helper version, does all the work
-def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
+def fetch_eppic_sync(pdbCode,iface=0,name=None,state=0,logfn=None,**kwargs):
 	"Synchronously fetch eppic interface(s)"
 	fetchpath=cmd.get('fetch_path')
 	if logfn is None:
 		def logfn(m):
 			print(m)
 
-	if pdbCode:
-		if len(pdbCode)>4:
-			if len(pdbCode.split("-"))==2:
-				pdbid=pdbCode.split("-")[0]
-				ifaceid=pdbCode.split("-")[1]
-				filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbid,ifaceid))
-				if name is None:
-					name = pdbCode
-				check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
-				if check_fetch:
-					cmd.load(filename,name,state,format="pdb",**kwargs)
-					cmd.util.color_chains()
-				else:
-					logfn("No PDB or Interface Found")
-			elif len(pdbCode.split("-"))==3:
-				pdbid=pdbCode.split("-")[0]
-				ifaceid=pdbCode.split("-")[1]
-				chain=pdbCode.split("-")[2]
-				filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbid,ifaceid))
-				if name is None:
-					name = pdbCode
-					name2 = "%s_%s_%s"%(pdbid,ifaceid,chain)
-				check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
-				if check_fetch:
-					cmd.load(filename,name,state,format="pdb",**kwargs)
-					cmd.show_as('cartoon','%s'%(name))
-					cmd.util.color_chains("%s"%(name))
-					cmd.extract('%s'%(name2),"%s//%s//"%(name,chain))
-					cmd.show_as('surface',"%s"%(name2))
-					cmd.spectrum(expression='b',palette='rainbow',selection='%s'%(name2),minimum=0.0,maximum=3.3219280948873626)
-					#cmd.color('salmon','%s'%(name))
+	if not pdbCode:
+		logfn( "No PDB given")
+		return
 
-				else:
-					logfn("No PDB or Interface Found")
-			else:
-				logfn("Input not in right format example : pdb,id,chain")
-
+	if iface: #Single interface
+		filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbCode,iface))
+		if name is None:
+			name = "{}-{}".format(pdbCode,iface)
+		#Download interface
+		check_fetch = load_eppic(pdbCode,iface,filename,logfn)
+		if check_fetch:
+			cmd.load(filename,name,state,format="pdb",**kwargs)
+			cmd.util.color_chains(name)
 		else:
-			ifaceid=1
-			pdbid=pdbCode
-			while True:
-				filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbid,ifaceid))
-				if name is None:
-					objname = "%s-%d"%(pdbid,ifaceid)
-				else:
-					objname = name
-				check_fetch=load_eppic(pdbid,ifaceid,filename)
-				if check_fetch:
-					cmd.load(filename,objname,state,format="pdb",**kwargs)
-					ifaceid+=1
-				else:
-					if ifaceid==1:
-						logfn( "No PBD or Interface Found")
-					else:
-						#logfn( "%d Interfaces Loaded"%(ifaceid-1) )
-						cmd.util.color_chains()
-					break
-	else: #no pdbcode
-		logfn( "No PDB or Interface given")
+			logfn("No PDB or Interface Found")
+	else: # All interfaces
+		if name is None:
+			name = "{}-{{}}".format(pdbCode)
+		iface=1
+		check_fetch = True
+		while check_fetch:
+			filename=os.path.join(fetchpath, "%s-%d.pdb"%(pdbCode,iface))
+			objname = name.format(iface)
+			check_fetch = load_eppic(pdbCode,iface,filename,logfn)
+			if check_fetch:
+				cmd.load(filename,objname,state,format="pdb",**kwargs)
+				cmd.util.color_chains(objname)
+				iface+=1
+			else:
+				if iface==1:
+					logfn( "No PBD or Interface Found")
+					logfn("No PDB or Interface Found")
 
 def load_eppic(pdbid,ifaceid,filename,logfn=None):
 	"""Download the interface from eppic
 	return whether the download was successfull
 	"""
-	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%s"%(pdbid,ifaceid)
+	fetchurl="http://eppic-web.org/ewui/ewui/fileDownload?type=interface&id=%s&interface=%s"%(pdbid.lower(),ifaceid)
 
 	is_done=False
 
@@ -415,5 +391,32 @@ def load_eppic(pdbid,ifaceid,filename,logfn=None):
 	except IOError:
 		pass
 	return is_done
+
+#def fetch_eppic_entropy(pdbid, chain):
+#	fetchpath=cmd.get('fetch_path')
+#
+#			elif len(pdbCode.split("-"))==3:
+#				pdbid=pdbCode.split("-")[0]
+#				ifaceid=pdbCode.split("-")[1]
+#				chain=pdbCode.split("-")[2]
+#				filename=os.path.join(fetchpath, "%s-%s.pdb"%(pdbid,ifaceid))
+#				if name is None:
+#					name = pdbCode
+#					name2 = "%s_%s_%s"%(pdbid,ifaceid,chain)
+#				check_fetch=load_eppic(pdbid,ifaceid,filename,logfn)
+#				if check_fetch:
+#					cmd.load(filename,name,state,format="pdb",**kwargs)
+#					cmd.show_as('cartoon','%s'%(name))
+#					cmd.util.color_chains("%s"%(name))
+#					cmd.extract('%s'%(name2),"%s//%s//"%(name,chain))
+#					cmd.show_as('surface',"%s"%(name2))
+#					cmd.spectrum(expression='b',palette='rainbow',selection='%s'%(name2),minimum=0.0,maximum=3.3219280948873626)
+#					#cmd.color('salmon','%s'%(name))
+#
+#				else:
+#					logfn("No PDB or Interface Found")
+#			else:
+#				logfn("Input not in right format example : pdb,id,chain")
+
 
 cmd.extend("fetch_eppic",fetch_eppic)
