@@ -132,10 +132,12 @@ if hasTk():
 			_ALL_JOINED = u"All Interfaces–Single Object"
 			_SINGLE = u"Single Interface"
 
-			def errorfn(self,msg):
-				tkMessageBox.showinfo('EPPIC Interface Loader Service', msg,parent=plugins.get_tk_root())
+			def errorfn(self,msg,parent=None):
+				tkMessageBox.showinfo('EPPIC Interface Loader Service', msg,
+						parent=(parent or plugins.get_tk_root()) )
 
 			def __init__(self, master):
+				"""Initialize the GUI"""
 				frame = Toplevel(master)
 				frame.title("EPPIC Interface Loader Service")
 				frame.minsize(300,0)
@@ -143,50 +145,56 @@ if hasTk():
 
 				self.frame = frame
 
-				row=0
-				Label(frame, text="PDB ID").grid(row=row)
-				self.pdbid = Entry(frame)
-				self.pdbid.grid(row=row,column=1)
-				
-				#checkbutton.grid(columnspan=2, sticky=W)
-				
-				row+=1
+				pad = 4
+				padkw = {'padx': pad, 'pady': (pad, 0)}
+
 				# All options. Note that changeMode is sensitive to changes in order here
-				
 				self.selectedMode = StringVar(frame)
-				self.selectedMode.set(self._ALL_SPLIT) # default value
-				
+				self.selectedMode.set(self._ALL_SPLIT)
+
 				# Create OptionMenu with all options
-				mode = OptionMenu(frame,self.selectedMode,
+				row = self._makerow("Type:",**padkw)
+				mode = OptionMenu(row,self.selectedMode,
 						self._ALL_SPLIT, self._ALL_JOINED, self._SINGLE,
 						command=self.changeMode)
-				mode.grid(row=row,columnspan=2)
-				
-				#self.listbox = Listbox(frame,selectmode=SINGLE)
-				#self.listbox.grid(row=row,columnspan=2)
-				#self.listbox.insert(END, u"Single Interface")
-				#self.listbox.insert(END, u"All Interfaces–Single Object")
-				#self.listbox.insert(END, u"Single Interface–Several Objects")
-				
-				row+=1
-				self.ifacelabel = Label(frame, text="Interface No.")
-				self.ifacelabel.grid(row=row)
-				self.ifaceno = Entry(frame)
-				self.ifaceno.grid(row=row,column=1)
+				mode.pack(side=LEFT)
+
+				row = self._makerow("PDB ID",**padkw)
+				self.pdbid = Entry(row,width=4)
+				self.pdbid.bind("<Return>", self.submit)
+				self.pdbid.pack(side=LEFT)
+
+				self.ifacelabel = Label(row, text="Interface No.")
+				self.ifacelabel.pack(side=LEFT)
+				self.ifaceno = Entry(row,width=4)
+				self.ifaceno.bind("<Return>", self.submit)
+				self.ifaceno.pack(side=LEFT)
 
 
-				row+=1
-				cancel = Button(frame, text="Cancel", command=self.cancel)
-				cancel.grid(row=row,column=0)
-				
-				ok = Button(frame, text="OK", command=self.submit)
-				ok.grid(row=row,column=1)
+				row = self._makerow(**padkw)
+				cancel = Button(row, text="Cancel", command=self.cancel)
+
+				ok = Button(row, text="OK", command=self.submit)
+				ok.pack(side=RIGHT,fill=X)
+				cancel.pack(side=RIGHT,fill=X)
+
+				row = self._makerow(padx=pad, pady=(2,pad))
+				self.keep = IntVar()
+				keep = Checkbutton(row, text="Keep dialog open",variable=self.keep)
+				keep.pack(side=RIGHT)
 
 				# Disable iface input
 				self.changeMode()
 
 				ok.focus_set()
-				
+
+			def _makerow(self,label=None,parent=None, **kwargs):
+				"helper method for wrapping up rows in a frame"
+				row = Frame(parent or self.frame)
+				row.pack(fill=X,**kwargs)
+				if label:
+					Label(row, text=label).pack(side=LEFT)
+				return row
 
 			def changeMode(self,mode=None):
 				"Disables/enables the interface input box depending on the mode dropdown"
@@ -205,7 +213,7 @@ if hasTk():
 				#self.errorfn("Cancel")
 				self.frame.destroy()
 
-			def submit(self):
+			def submit(self,src=None):
 				"Handles the OK button"
 
 				pdbCode = self.pdbid.get()
@@ -232,7 +240,8 @@ if hasTk():
 				#thread.start_new_thread(fetch_eppic_sync, (pdbCode,None,0,self.errorfn))
 				fetch_eppic_sync(request,name,state,logfn=self.errorfn)
 
-				self.frame.quit()
+				if not self.keep.get():
+					self.frame.destroy()
 
 	except ImportError:
 		pass #no Tk
@@ -345,7 +354,7 @@ def fetch_eppic_sync(pdbCode,name=None,state=0,logfn=None,**kwargs):
 					cmd.show_as('surface',"%s"%(name2))
 					cmd.spectrum(expression='b',palette='rainbow',selection='%s'%(name2),minimum=0.0,maximum=3.3219280948873626)
 					#cmd.color('salmon','%s'%(name))
-					
+
 				else:
 					logfn("No PDB or Interface Found")
 			else:
