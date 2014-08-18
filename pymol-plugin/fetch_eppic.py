@@ -20,38 +20,51 @@ INSTALLATION
 	To install from within pymol, from the Plugins menu, choose 'Manage
 	Plugins>Install...' and select fetch_eppic.py from your hard drive.
 
-	To install manually, copy fetch_eppic.py to 'PYMOLPATH/modules/pmg_tk/startup/' and
-	restart pymol.
+	To install manually, copy fetch_eppic.py to
+	'PYMOLPATH/modules/pmg_tk/startup/' and restart pymol.
 
-	After installation you will have an additional entry called "Eppic Interface Loader" in Plugin menu.
+	After installation you will have an additional entry called "Eppic
+	Interface Loader" in Plugin menu.
 
-	Note: Users of MacPyMol.app do not have a plugins menu, and should use the fetch_eppic command.
+	Note: Users of MacPyMol.app do not have a plugins menu, and should use the
+	fetch_eppic command.
 
 USAGE--PLUGIN MENU
 
-	Entering a pdb code will load all interfaces for a given pdbid
+	Entering a pdb code will load all interfaces for a given pdbid.
 	Example: 2gs2
 
-	Entering pdbid-interfaceid will load only a specified interface (as
-	numbered by EPPIC, which sorts interfaces by their area)
-	Example: 2gs2-2
+	Single states can also be selected. States are numbered according to the
+	EPPIC website.
 
+	By default, each interface is loaded as its own object. They can also be
+	loaded as multiple states in a single object, which can then be navigated
+	using the state navigation at the bottom right.
 
 USAGE--COMMAND LINE
-	fetch_eppic pdbid[-interfaceid] [,name [,state [,async]]]
+	fetch_eppic pdbCode [iface, [name, [state, [async, [entropies]]]]]
 
 ARGUMENTS
 	Arguments mirror arguments to fetch
 
-	pdbid = string: Either a PDB ID or an EPPIC interface in the format XXXX-N,
-	where XXXX is the pdb id and N is the interface number. {required}
+	pdbid = string: PDB ID {required}
 
-	name = string: name of the PyMOL object to lave to {default: pdbid}
+	iface = integer: EPPIC interface number, as listed on the EPPIC server
+	(eppic-web.org). Use 0 to load all interfaces.
+
+	name = string: name of the pymol object to save to. For multiple
+	interfaces include the string '{}', which will be replaced with the
+	interface number {default: <pdbid>-<iface>}
 
 	state = integer: number of the state into which the content should be
 	loaded, or 0 for append {default: 0}
 
 	async = integer: 0 to force synchronous execution {default:1}
+
+	entropies = mixed: specifies which chains to display "molecular potato"
+	style sequence entropy. 0 for both chains, 1 for the first chain, or 2 for
+	the second. Also accepts chains by letter. Other values will disable
+	surface display. {default disabled}
 
 	Other arguments will be passed directly to load.
 
@@ -61,20 +74,20 @@ EXAMPLES
 	fetch_eppic 2gs2
 
 	#Load only the second interface
-	fetch_eppic 2gs2-2
+	fetch_eppic 2gs2, 2
 
 	#Load all interfaces as states of a single object
 	fetch_eppic 2gs2, name=2gs2_eppic
 
 	#Load synchronously for chaining commands
-	fetch_eppic 2gs2-1, name=interface, async=0; show cartoon, interface
+	fetch_eppic 2gs2, 1, name=interface, async=0; show cartoon, interface
 
 	Interface ids are those listed in the EPPIC server output
 
 
 Author : Kumaran Baskaran
 Date   : 10.04.2014
-Version: 0.1
+Version: 1.0-RC
 '''
 import sys, os, thread
 import urllib2,StringIO,gzip
@@ -82,7 +95,7 @@ import pymol
 from pymol import cmd, plugins, stored
 from string import atoi
 
-_version = "0.1"
+_version = "1.0-RC"
 
 
 def hasTk():
@@ -304,7 +317,7 @@ def fetch_eppic(pdbCode,iface=0,name=None,state=0,async=1, entropies=None, **kwa
 		EPPIC server to open in pymol
 
 	USAGE--COMMAND LINE
-		fetch_eppic pdbid, [interfaceid, [,name [,state [,async]]]]
+		fetch_eppic pdbCode [iface, [name, [state, [async, [entropies]]]]]
 
 	ARGUMENTS
 		Arguments mirror arguments to fetch
@@ -342,7 +355,7 @@ def fetch_eppic(pdbCode,iface=0,name=None,state=0,async=1, entropies=None, **kwa
 		fetch_eppic 2gs2, name=2gs2_eppic
 
 		#Load synchronously for chaining commands
-		fetch_eppic 2gs2-1, name=interface, async=0; show cartoon, interface
+		fetch_eppic 2gs2, 1, name=interface, async=0; show cartoon, interface
 
 	Author : Kumaran Baskaran
 	Date   : 11.04.2014
