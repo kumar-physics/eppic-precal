@@ -31,10 +31,10 @@ INSTALLATION
 
 USAGE--PLUGIN MENU
 
-	Entering a pdb code will load all interfaces for a given pdbid.
+	Entering a PDB code will load all interfaces for a given pdbid.
 	Example: 2gs2
 
-	Single states can also be selected. States are numbered according to the
+	Single interfaces can also be selected. Interfaces are numbered according to the
 	EPPIC website.
 
 	By default, each interface is loaded as its own object. They can also be
