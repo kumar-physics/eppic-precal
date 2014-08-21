@@ -85,9 +85,10 @@ EXAMPLES
 	Interface ids are those listed in the EPPIC server output
 
 
-Author : Kumaran Baskaran
-Date   : 10.04.2014
-Version: 1.0-RC
+Author   : Kumaran Baskaran & Spencer Bliven
+Date     : 10.04.2014
+Modified : 21.08.2014
+Version  : 1.0-RC
 '''
 import sys, os, thread
 import urllib2,StringIO,gzip
