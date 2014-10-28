@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 '''
 Created on Oct 28, 2014
 
@@ -17,6 +17,7 @@ class TopupEPPIC:
     topuppath='/home/eppicweb/topup'
     eppicconf='/home/eppicweb/.eppic.conf'
     pdbrepopath='/data/dbs/pdb'
+    database='eppic_2014_09'
     def parsePDBrsyncfile(self):
         f=open(self.rsyncfile,'r').read()
         self.deletedPDB=findall(r'deleting\s*mmCIF/\S+/(\S+).cif.gz\s+',f ,)
@@ -83,8 +84,12 @@ class TopupEPPIC:
         #print "qsub %s"%(self.qsubscript)
         mailmessage="%d new entries\n%d updated entries\n%d deleted deleted entries\n%d jobs submitted successfully"%(len(self.newPDB),len(self.updatedPDB),len(self.deletedPDB),len(self.newPDB)+len(self.updatedPDB))
         #print mailmessage
-        mailcmd="mail -s \"EPPIC topup started\" \"kumaran.baskaran@psi.ch\" <<< \"%s\""%(mailmessage)
+        mailcmd="mail -s \"EPPIC topup started\" \"eppic@systemsx.ch\" <<< \"%s\""%(mailmessage)
         system(mailcmd)
+
+    def previousStatistics(self):
+        statcmd1="python /home/eppicweb/bin/eppic_stat_2_1_0_prev.py %s"%(self.database)
+        system(statcmd1)
 
 if __name__=="__main__":
     p=TopupEPPIC()
@@ -94,3 +99,4 @@ if __name__=="__main__":
     if p.checkNumbers():
         p.writeQsubscript()
         p.submitJob()
+	p.previousStatistics()

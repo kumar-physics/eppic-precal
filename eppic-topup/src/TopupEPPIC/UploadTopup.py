@@ -27,20 +27,20 @@ class UploadTopup:
     
     def rsyncFolder(self):
         rsynccmd="rsync -avz %s/output/%s/data/divided %s/"%(self.topuppath,str(self.t),self.datapath) 
-        print rsynccmd
-        #system(rsynccmd)
+        #print rsynccmd
+        system(rsynccmd)
     
     def createSymlink(self):
         newPdblist=open("%s/input/newPDB_%s.list"%(self.topuppath,str(self.t)),'r').read().split("\n")[:-1]
         for pdb in newPdblist:
             symlinkcmd="cd %s;ln -s divided/%s/%s"%(self.datapath,pdb[1:3],pdb)
-            print symlinkcmd
-            #system(symlinkcmd)
+            #print symlinkcmd
+            system(symlinkcmd)
 
     def uploadFiles(self):
         uploadcmd="/home/eppicweb/bin/upload_to_db -d %s/ -f %s/input/pdbinput_%s.list -F -o > /dev/null"%(self.datapath,self.topuppath,str(self.t))
-        print uploadcmd
-        #system(uploadcmd)
+        #print uploadcmd
+        system(uploadcmd)
         
     def previousStatistics(self):
         statcmd1="python /home/eppicweb/bin/eppic_stat_2_1_0_prev.py %s"%(self.database)
@@ -75,22 +75,30 @@ class UploadTopup:
     def sendMessage(self):
         mailmessage="Job Ids %s are running "%(" ".join(self.runningJobs))
         #print mailmessage
-        mailcmd="mail -s \"EPPIC topup running\" \"kumaran.baskaran@psi.ch\" <<< \"%s\""%(mailmessage)
+        mailcmd="mail -s \"EPPIC topup running\" \"eppic@systemsx.ch\" <<< \"%s\""%(mailmessage)
         system(mailcmd)
+
+    def sendReport(self):
+        mailmessage2="All jobs finished successfully\nhttp://eppic-web.org/ewui/#statistics\n"
+        #print mailmessage
+        mailcmd2="mail -s \"EPPIC topup finished\" \"eppic@systemsx.ch\" <<< \"%s\""%(mailmessage2)
+        system(mailcmd2)
+
 
 if __name__=="__main__":
     p=UploadTopup()
     try:
         p.newEntries()
         runningjob=p.checkJobs()
-        if len(runningjob)!=0 and p.topupOver()!=0:
+        if len(runningjob)!=0 and p.topupOver()==0:
             p.sendMessage()
         else:
-            #p.rsyncFolder()
-            #p.createSymlink()
-            #p.uploadFiles()
-            #p.previousStatistics()
-            #p.getStatistics()
-            print "OK"
+	    if p.topupOver()==0:	
+            	p.rsyncFolder()
+            	p.createSymlink()
+            	p.uploadFiles()
+            	#p.previousStatistics()
+            	p.getStatistics()
+		p.sendReport()
     except IOError:
         pass
