@@ -26,7 +26,7 @@ class UploadTopup:
     datapath='/data/webapps/files_%s'%(uniprotVersion)
     
     def rsyncFolder(self):
-        rsynccmd="rsync -avz %s/output/%s/data/divided %s/"%(self.topuppath,str(self.t),self.datapath) 
+        rsynccmd="rsync -az %s/output/%s/data/divided %s/"%(self.topuppath,str(self.t),self.datapath) 
         #print rsynccmd
         system(rsynccmd)
     
@@ -74,14 +74,17 @@ class UploadTopup:
     
     def sendMessage(self):
         mailmessage="Job Ids %s are running "%(" ".join(self.runningJobs))
+	msg2=mailmessage+"\nMemory info (GB)\n"+getoutput('free -g')
         #print mailmessage
-        mailcmd="mail -s \"EPPIC topup running\" \"eppic@systemsx.ch\" <<< \"%s\""%(mailmessage)
+        mailcmd="mail -s \"EPPIC topup running\" \"eppic@systemsx.ch\" <<< \"%s\""%(msg2)
         system(mailcmd)
 
     def sendReport(self):
         mailmessage2="All jobs finished successfully\nhttp://eppic-web.org/ewui/#statistics\n"
         #print mailmessage
         mailcmd2="mail -s \"EPPIC topup finished\" \"eppic@systemsx.ch\" <<< \"%s\""%(mailmessage2)
+	cpcmd="cp %s/statistics_%s.html /data/webapps/ewui/statistics.html"%(self.topuppath,str(self.t))
+        system(cpcmd)
         system(mailcmd2)
 
 

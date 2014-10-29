@@ -80,7 +80,7 @@ class TopupEPPIC:
         fo.close()
     
     def submitJob(self):
-        system("qsub %s"%(self.qsubscript))
+        system("source /var/lib/gridengine/default/common/settings.sh;qsub %s"%(self.qsubscript))
         #print "qsub %s"%(self.qsubscript)
         mailmessage="%d new entries\n%d updated entries\n%d deleted deleted entries\n%d jobs submitted successfully"%(len(self.newPDB),len(self.updatedPDB),len(self.deletedPDB),len(self.newPDB)+len(self.updatedPDB))
         #print mailmessage
