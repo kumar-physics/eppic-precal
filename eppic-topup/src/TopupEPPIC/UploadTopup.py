@@ -80,9 +80,10 @@ class UploadTopup:
         system(mailcmd)
 
     def sendReport(self):
-        mailmessage2="All jobs finished successfully\nhttp://eppic-web.org/ewui/#statistics\n"
+        mailmessage2="All jobs finished successfully. Please see the attachment"
+	#mailmessage2="This is a test"
         #print mailmessage
-        mailcmd2="mail -s \"EPPIC topup finished\" \"eppic@systemsx.ch\" <<< \"%s\""%(mailmessage2)
+        mailcmd2="mail -s \"EPPIC topup finished\" -a \"%s/statistics_%s.html\" \"eppic@systemsx.ch\" <<< \"%s\""%(self.topuppath,str(self.t),mailmessage2)
 	cpcmd="cp %s/statistics_%s.html /data/webapps/ewui/statistics.html"%(self.topuppath,str(self.t))
         system(cpcmd)
         system(mailcmd2)
@@ -100,8 +101,8 @@ if __name__=="__main__":
             	p.rsyncFolder()
             	p.createSymlink()
             	p.uploadFiles()
-            	#p.previousStatistics()
+            	p.previousStatistics()
             	p.getStatistics()
-		p.sendReport()
+	   	p.sendReport()
     except IOError:
         pass
