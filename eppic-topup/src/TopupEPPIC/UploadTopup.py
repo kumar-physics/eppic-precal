@@ -41,6 +41,13 @@ class UploadTopup:
         uploadcmd="/home/eppicweb/bin/upload_to_db -d %s/ -f %s/input/pdbinput_%s.list -F -o > /dev/null"%(self.datapath,self.topuppath,str(self.t))
         #print uploadcmd
         system(uploadcmd)
+    def removeObsolete(self):
+        if self.deletedEntries()<20:
+            delcmd="/home/eppicweb/bin/upload_to_db -d %s/ -f %s/input/deletedPDB_%s.list -r -o > /dev/null"%(self.datapath,self.topuppath,str(self.t))
+            system(delcmd)
+        else:
+            sendmail="mail -s \"EPPIC topup warning\"  \"eppic@systemsx.ch\" <<< \"More than 20 obsolete entries found. Please check and delete manually\""
+            system(sendmail)
         
     def previousStatistics(self):
         statcmd1="python /home/eppicweb/bin/eppic_stat_2_1_0_prev.py %s"%(self.database)
@@ -101,7 +108,7 @@ if __name__=="__main__":
             	p.rsyncFolder()
             	p.createSymlink()
             	p.uploadFiles()
-            	p.previousStatistics()
+                p.removeObsolete()
             	p.getStatistics()
 	   	p.sendReport()
     except IOError:
