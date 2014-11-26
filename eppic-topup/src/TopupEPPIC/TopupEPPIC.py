@@ -17,7 +17,8 @@ class TopupEPPIC:
     topuppath='/home/eppicweb/topup'
     eppicconf='/home/eppicweb/.eppic.conf'
     pdbrepopath='/data/dbs/pdb'
-    database='eppic_2014_09'
+    database='eppic_2014_10'
+    uniprot='2014_10'
     def parsePDBrsyncfile(self):
         f=open(self.rsyncfile,'r').read()
         self.deletedPDB=findall(r'deleting\s*mmCIF/\S+/(\S+).cif.gz\s+',f ,)
@@ -90,10 +91,13 @@ class TopupEPPIC:
     def previousStatistics(self):
         statcmd1="python /home/eppicweb/bin/eppic_stat_2_1_0_prev.py %s"%(self.database)
         system(statcmd1)
-
+    def getShiftsFile(self):
+        cmd="curl -s ftp://ftp.ebi.ac.uk/pub/databases/msd/sifts/text/pdb_chain_uniprot.lst > /data/dbs/uniprot/uniprot_%s/pdb_chain_uniprot.lst"%(self.uniprot)
+        system(cmd)
 if __name__=="__main__":
     p=TopupEPPIC()
     p.getLatestRsyncLogfile()
+    p.getShiftsFile()
     p.parsePDBrsyncfile()
     p.writePDBlists()
     if p.checkNumbers():
