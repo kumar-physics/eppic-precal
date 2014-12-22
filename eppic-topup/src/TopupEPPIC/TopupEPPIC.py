@@ -17,8 +17,8 @@ class TopupEPPIC:
     topuppath='/home/eppicweb/topup'
     eppicconf='/home/eppicweb/.eppic.conf'
     pdbrepopath='/data/dbs/pdb'
-    database='eppic_2014_10'
-    uniprot='2014_10'
+    database='eppic_2014_11'
+    uniprot='2014_11'
     def parsePDBrsyncfile(self):
         f=open(self.rsyncfile,'r').read()
         self.deletedPDB=findall(r'deleting\s*mmCIF/\S+/(\S+).cif.gz\s+',f ,)

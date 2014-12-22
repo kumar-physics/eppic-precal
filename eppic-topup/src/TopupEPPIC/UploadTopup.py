@@ -17,8 +17,8 @@ from os import system
 class UploadTopup:
     
     t=date.today()
-    uniprotVersion='2014_10'
-    database="eppic_%s"%(uniprotVersion)
+    uniprotVersion='2014_11'
+    database="eppic_2014_11"
     eppicpath='/home/eppicweb/software/bin/eppic'
     topuppath='/home/eppicweb/topup'
     eppicconf='/home/eppicweb/.eppic.conf'
@@ -38,12 +38,12 @@ class UploadTopup:
             system(symlinkcmd)
 
     def uploadFiles(self):
-        uploadcmd="/home/eppicweb/software/jars/eppic-dbtools.jar -D %s  -d %s/ -f %s/input/pdbinput_%s.list -F -o > /dev/null"%(self.database,self.datapath,self.topuppath,str(self.t))
+        uploadcmd="java -jar /home/eppicweb/software/jars/eppic-dbtools.jar UploadToDb -D %s  -d %s/ -f %s/input/pdbinput_%s.list -F  > /dev/null"%(self.database,self.datapath,self.topuppath,str(self.t))
         #print uploadcmd
         system(uploadcmd)
     def removeObsolete(self):
         if self.deletedEntries()<20:
-            delcmd="/home/eppicweb/software/jars/eppic-dbtools.jar -D %s -d %s/ -f %s/input/deletedPDB_%s.list -r -o > /dev/null"%(self.database,self.datapath,self.topuppath,str(self.t))
+            delcmd="java -jar /home/eppicweb/software/jars/eppic-dbtools.jar UploadToDb -D %s -d %s/ -f %s/input/deletedPDB_%s.list -r  > /dev/null"%(self.database,self.datapath,self.topuppath,str(self.t))
             system(delcmd)
         else:
             sendmail="mail -s \"EPPIC topup warning\"  \"eppic@systemsx.ch\" <<< \"More than 20 obsolete entries found. Please check and delete manually\""
